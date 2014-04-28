@@ -87,7 +87,7 @@ public class TerrainEffects : MonoBehaviour {
 		effect.grip = 0.7f;
 		effect.bumpInterval = 0.7f;
 		effect.bumpPower = 2.0f;
-		effect.resistance = 0.4f;
+		effect.resistance = 0.5f;
 		effect.color = new Vector3(1.0f, 0.0f, 0.0f); //red
 		effectDict.Add(Type.Dirt, effect);
 
@@ -127,7 +127,7 @@ public class TerrainEffects : MonoBehaviour {
 		effect.grip = 0.7f;
 		effect.bumpInterval = 0.4f;
 		effect.bumpPower = 0.4f;
-		effect.resistance = 0.6f;
+		effect.resistance = 0.8f;
 		effect.color = new Vector3(1.0f, 1.0f, 0f); //yellow
 		effectDict.Add(Type.Sand, effect);
 

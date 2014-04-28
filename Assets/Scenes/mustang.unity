@@ -1012,7 +1012,7 @@ MonoBehaviour:
   steerMax: 28
   brakeTorqueMax: 4000
   eBrakeTorqueMax: 6000
-  dragMultiplier: {x: .0299999993, y: .0500000007, z: .0199999996}
+  dragMultiplier: {x: 3, y: 5, z: 1}
   centerOfMass: {fileID: 1653842149}
   torqueCurve:
     serializedVersion: 2
@@ -1283,6 +1283,34 @@ Prefab:
     - target: {fileID: 11400010, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
       propertyPath: debugUseAI
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400002, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
+      propertyPath: wheels.Array.data[0].terrainResistanceEffect
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400002, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
+      propertyPath: wheels.Array.data[1].terrainResistanceEffect
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400002, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
+      propertyPath: wheels.Array.data[2].terrainResistanceEffect
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400002, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
+      propertyPath: wheels.Array.data[3].terrainResistanceEffect
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400002, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
+      propertyPath: dragMultiplier.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400002, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
+      propertyPath: dragMultiplier.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400002, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
+      propertyPath: dragMultiplier.x
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}

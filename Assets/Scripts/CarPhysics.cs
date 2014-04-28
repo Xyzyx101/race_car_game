@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class CarPhysics : MonoBehaviour {
@@ -82,7 +82,7 @@ public class CarPhysics : MonoBehaviour {
 			}
 		}
 		Vector3 relativeVelocity = transform.InverseTransformDirection(rigidbody.velocity);
-		UpdateResistance(relativeVelocity);
+		UpdateDrag(relativeVelocity);
 		//bumps are ignoreed if the car is going really slow
 		if (speed > 2) UpdateBumps();
 	}
@@ -101,29 +101,39 @@ public class CarPhysics : MonoBehaviour {
 			engineRPM = Mathf.Clamp(wheelRPM * gearRatios[currentGear] * diffRatio, idleRPM, redline);
 		}
 		float totalWheelTorque = torqueCurve.Evaluate(engineRPM) * gearRatios[currentGear] * diffRatio * throttle;
-		if ( reverse ) totalWheelTorque *= -1;
+		float wheelResistance = CalculateRollingResistance();
+		float minTorque = rigidbody.mass * throttle / driveWheelCount;
+
+		if ( reverse ) {
+			totalWheelTorque *= -1;
+			wheelResistance *= -1;
+		}
 		foreach(Wheel wheel in wheels) {
 			if( wheel.driveWheel ) {
-				wheel.collider.motorTorque = totalWheelTorque / driveWheelCount;
+				wheel.collider.motorTorque = (totalWheelTorque - ( wheelResistance * wheel.collider.radius)) / driveWheelCount;
+				wheel.collider.motorTorque = wheel.collider.motorTorque < minTorque ? minTorque : wheel.collider.motorTorque;
+				Debug.Log("torque:" + totalWheelTorque + "  resistance:" + wheelResistance * wheel.collider.radius);
+				
 			}
 		}
 	}
-	void UpdateResistance (Vector3 relativeVelocity) {
-		Vector3 relativeDrag = new Vector3( -relativeVelocity.x * Mathf.Abs(relativeVelocity.x),
-		                               -relativeVelocity.y * Mathf.Abs(relativeVelocity.y),
-		                               -relativeVelocity.z * Mathf.Abs(relativeVelocity.z));
-		Vector3 dragFactor = Vector3.Scale(relativeDrag, dragMultiplier);
+	float CalculateRollingResistance () {
 		float rollingResistance = 0;
 		foreach(Wheel wheel in wheels) {
 			rollingResistance += wheel.baseRollingResistance + wheel.terrainResistanceEffect * wheel.terrainResistanceInfluence;
 			//Debug.Log("wheelRollRes:" + rollingResistance);
 		}
 		rollingResistance /= wheels.Length;
-		//Debug.Log("AverageRollRes:" + rollingResistance);
-		
-		Vector3 rollingFactor = new Vector3(0, 0, -relativeVelocity.z * rollingResistance);
-		//Debug.Log("drag:" + dragFactor + " rollRes:" + rollingFactor + "  f:" + transform.TransformDirection(dragFactor + rollingFactor) * rigidbody.mass * Time.deltaTime);
-		rigidbody.AddForce(transform.TransformDirection(dragFactor + rollingFactor) * rigidbody.mass * Time.deltaTime);
+		//Vector3 rollingFactor = -transform.forward * rollingResistance * rigidbody.mass;
+		//rollingFactor = Vector3.zero;
+		return rollingResistance * rigidbody.mass;
+	}
+	void UpdateDrag (Vector3 relativeVelocity) {
+		Vector3 relativeDrag = new Vector3( -relativeVelocity.x * Mathf.Abs(relativeVelocity.x),
+		                               -relativeVelocity.y * Mathf.Abs(relativeVelocity.y),
+		                               -relativeVelocity.z * Mathf.Abs(relativeVelocity.z));
+		Vector3 drag = Vector3.Scale(relativeDrag, dragMultiplier);
+		rigidbody.AddForce( drag , ForceMode.Force);
 	}
 	void UpdateWheelPosition () {
 		WheelHit hit;
