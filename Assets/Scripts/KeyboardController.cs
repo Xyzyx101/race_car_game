@@ -49,7 +49,7 @@ public class KeyboardController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		ControlProxy control = new ControlProxy();
+		ControlProxy control  = new ControlProxy();
 		control.eBrake = Input.GetKey (KeyCode.Space);
 		
 		//steerInput = Mathf.Clamp(Input.GetAxis("Horizontal"), -1, 1);
@@ -85,7 +85,7 @@ public class KeyboardController : MonoBehaviour {
 		SetBrakes(ref control);
 
 		car.SetControls(control);
-		DisplayDebug(control);
+		//DisplayDebug(control);
 	}
 	void SetSteer (ref ControlProxy control) {
 		steerInput = 0;

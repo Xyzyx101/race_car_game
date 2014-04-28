@@ -140,7 +140,7 @@ public class CarPhysics : MonoBehaviour {
 			}
 
 			float degPerSec;
-			degPerSec = wheel.collider.rpm * 6;
+			degPerSec = wheel.collider.rpm * 6; //   * 360 deg / 60 sec per minute = 6
 			wheelRotation = Quaternion.AngleAxis(-degPerSec * Time.deltaTime, Vector3.left);
 			wheel.mesh.transform.localRotation *= wheelRotation;
 
