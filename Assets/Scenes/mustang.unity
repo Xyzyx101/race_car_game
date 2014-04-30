@@ -1033,7 +1033,8 @@ MonoBehaviour:
   autoShiftUp: 4200
   autoShiftDown: 2800
   idleRPM: 700
-  redline: 7000
+  redline: 8000
+  engineEfficiancy: .829999983
   engineRPM: 0
   speed: 0
   inertiaFactor: 1.5
@@ -1311,6 +1312,14 @@ Prefab:
     - target: {fileID: 11400002, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
       propertyPath: dragMultiplier.x
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400010, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
+      propertyPath: lookAhead
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400002, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
+      propertyPath: redline
+      value: 8000
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}

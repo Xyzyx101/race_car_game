@@ -20,19 +20,21 @@ public class EnemyAI : MonoBehaviour {
 	void Update () {
 		car2DVelocity = new Vector2(car.rigidbody.velocity.x, car.rigidbody.velocity.z);
 		Vector2 car2D = new Vector2(car.transform.position.x, car.transform.position.z);
-		Vector3 carDebugDraw = new Vector3(car2D.x + car2DVelocity.x, car.transform.position.y, car2D.y + car2DVelocity.y);
-		Debug.DrawLine(car.transform.position, carDebugDraw, Color.blue);
-		Vector2 projection = car2D + car2DVelocity * lookAhead;
+		Vector2 car2DForward = new Vector2(car.transform.forward.x, car.transform.forward.z).normalized;
+		DebugDisplay3D(car2DForward, Color.yellow);
+
+		Vector2 projection = car2DForward * Mathf.Max(5f, Vector2.Dot(car2DVelocity, car2DForward)) * lookAhead;
+		
+		DebugDisplay3D(projection, Color.blue);
 		Vector2 targetPoint;
-		currentPathParam = path.GetNearestParam(out targetPoint, projection, currentPathParam );
-		Vector3 start = car.transform.position;
+		currentPathParam = path.GetNearestParam(out targetPoint, car2D + projection, currentPathParam );
+		Vector3 start = new Vector3((car2D + projection).x, car.transform.position.y, (car2D + projection).y);
 		Vector3 end = new Vector3(targetPoint.x, car.transform.position.y, targetPoint.y);
 		Debug.DrawLine(start, end, Color.red);
 
 		DriveActuator(targetPoint);
 	}
 	void DriveActuator (Vector2 target) {
-		//if (Mathf.Abs(car.slipVeloForward) > 1f) Debug.Break();
 
 		// min and max refers to the speed of the car not the size of the angle
 		float minForwardAngle = 120f * Mathf.Deg2Rad;
@@ -62,24 +64,18 @@ public class EnemyAI : MonoBehaviour {
 		float targetAngle = Vector2.Angle(targetDir, forward2D) * Mathf.Deg2Rad;
 
 		Vector3 localTarget = car.transform.InverseTransformDirection(new Vector3(targetDir.x, 0f, targetDir.y));
-		Vector3 localTargetNorm = localTarget.normalized;
-
-		//Debug.Log("localTarget:" + localTarget + "  localTargetNorm" + localTargetNorm);
-		// FIXME
-		if (localTarget - localTargetNorm != Vector3.zero) Debug.Break();
 
 		ControlProxy control = new ControlProxy();
 		control.steer = Mathf.Clamp(targetAngle * Mathf.Rad2Deg * Mathf.Sign(localTarget.x) / car.steerMax, -1f, 1f);
 
 		if ( targetAngle < forwardAngle ) {
-			//Debug.Log("forward and turn");
+			Debug.Log("forward and turn");
+			control.throttle = Mathf.Max(0.25f, Mathf.Abs(localTarget.z));
 
-			control.throttle = Mathf.Clamp01(Mathf.Cos(targetAngle));
-			control.throttle = localTarget.z;
-			
 		} else if ( targetAngle > backAngle ) {
-			//Debug.Log("backwards");
+			Debug.Log("backwards");
 			if (car.speed < 5.0f) {
+				control.steer *= -1;
 				control.throttle = 1.0f;
 				control.reverse = true;
 			} else {
@@ -88,23 +84,14 @@ public class EnemyAI : MonoBehaviour {
 			}
 
 		} else {
-			//Debug.Log("brake and turn");
+			Debug.Log("brake and turn");
 			control.throttle = 0f;
-
-			//float requiredBrake = 1 - Mathf.Cos(targetAngle);
 			float requiredBrake = localTarget.z;
-			float maxBrake = Mathf.Lerp(1.0f, 0.2f, speedFactor);
 			if ( requiredBrake < 0 ) control.eBrake = true;
-			control.brake = Mathf.Clamp(requiredBrake, 0, maxBrake);
-
 			control.steer = Mathf.Clamp(Mathf.Abs(control.steer), 0, 1 - control.brake) * Mathf.Sign(localTarget.x);
-
-			//Debug.Log(Mathf.Cos (targetAngle));
-
 		}
-
 		//FIXME
-		control.gear = 3;
+		control.gear = 4;
 
 		//Debug.Log("steer:" + control.steer + "  throttle:" + control.throttle + "  brake:" + control.brake);
 
@@ -112,18 +99,9 @@ public class EnemyAI : MonoBehaviour {
 		car.SetControls(control);
 	}
 	void DebugDisplay3D(Vector2 vector, Color myColor) {
-		Vector3 offsetVec = new Vector3(0f, 1f, 0f);
-		Debug.DrawRay( car.transform.position + offsetVec, new Vector3(vector.x, 0f, vector.y) + offsetVec, myColor);
+		Vector3 offsetVec = new Vector3(0f, car.transform.position.y, 0f);
+		Debug.DrawRay( car.transform.position + offsetVec, new Vector3(vector.x, 0f, vector.y), myColor);
 	}
 }
 
-/* for reference only
- * public class ControlProxy {
-	const int neutral = -1;
-	public float throttle;
-	public float steer;
-	public float brake;
-	public int gear;
-	public bool reverse;
-	public bool eBrake;
-}*/
+

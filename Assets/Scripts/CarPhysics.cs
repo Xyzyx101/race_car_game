@@ -22,7 +22,8 @@ public class CarPhysics : MonoBehaviour {
 	public float autoShiftUp = 4200;
 	public float autoShiftDown = 2800;
 	public float idleRPM = 700;
-	public float redline = 7000;
+	public float redline = 8000;
+	public float engineEfficiancy = 0.83f;
 	
 	public float engineRPM = 0f;
 	public float speed = 0f;
@@ -44,6 +45,7 @@ public class CarPhysics : MonoBehaviour {
 		torqueCurve.AddKey(700,700); //rpm,torque in nm
 		torqueCurve.AddKey(4000,855);
 		torqueCurve.AddKey(6200,600);
+		torqueCurve.AddKey(8000,0);
 
 		foreach(Wheel wheel in wheels) {
 			wheel.localOrigin = wheel.mesh.transform.localPosition;
@@ -100,9 +102,11 @@ public class CarPhysics : MonoBehaviour {
 		} else {
 			engineRPM = Mathf.Clamp(wheelRPM * gearRatios[currentGear] * diffRatio, idleRPM, redline);
 		}
-		float totalWheelTorque = torqueCurve.Evaluate(engineRPM) * gearRatios[currentGear] * diffRatio * throttle;
+		float delta = 1 - (engineRPM - idleRPM) / ( redline - idleRPM);
+		float totalWheelTorque = torqueCurve.Evaluate(engineRPM) * gearRatios[currentGear] * diffRatio * throttle * engineEfficiancy * delta;
+		//Debug.Log("delta:" + delta + "  totalTorque:" + totalWheelTorque);
 		float wheelResistance = CalculateRollingResistance();
-		float minTorque = rigidbody.mass * throttle / driveWheelCount;
+		//float minTorque = rigidbody.mass * throttle / driveWheelCount;
 
 		if ( reverse ) {
 			totalWheelTorque *= -1;
@@ -111,9 +115,8 @@ public class CarPhysics : MonoBehaviour {
 		foreach(Wheel wheel in wheels) {
 			if( wheel.driveWheel ) {
 				wheel.collider.motorTorque = (totalWheelTorque - ( wheelResistance * wheel.collider.radius)) / driveWheelCount;
-				wheel.collider.motorTorque = wheel.collider.motorTorque < minTorque ? minTorque : wheel.collider.motorTorque;
-				Debug.Log("torque:" + totalWheelTorque + "  resistance:" + wheelResistance * wheel.collider.radius);
-				
+				//wheel.collider.motorTorque = wheel.collider.motorTorque < minTorque ? minTorque : wheel.collider.motorTorque;
+				//Debug.Log("torque:" + totalWheelTorque + "  resistance:" + wheelResistance * wheel.collider.radius);
 			}
 		}
 	}
