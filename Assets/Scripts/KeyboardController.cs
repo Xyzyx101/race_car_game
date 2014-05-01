@@ -223,7 +223,7 @@ public class KeyboardController : MonoBehaviour {
 	void SetThrottle(ref ControlProxy control) {
 		float finalThrottleTime;
 		float finalThrottleReleaseTime;
-		if ( car.slipVeloForward < -0.45f) {
+		if ( car.slipVeloForward < -1.8f) {
 			finalThrottleTime = throttleTimeSlip;
 			finalThrottleReleaseTime = throttleTimeSlip;
 		} else {

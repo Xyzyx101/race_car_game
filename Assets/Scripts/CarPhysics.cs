@@ -29,6 +29,7 @@ public class CarPhysics : MonoBehaviour {
 	public float speed = 0f;
 	public float inertiaFactor = 1.5f;
 	public float slipVeloForward = 0;
+	public float slipVeloSideways = 0f;
 	
 
 	public float steer = 0;
@@ -59,7 +60,7 @@ public class CarPhysics : MonoBehaviour {
 	void Update () {
 		speed = Vector3.Dot(rigidbody.velocity, transform.forward);
 		UpdateWheelPosition();
-		UpdateForwardSlipVelo();
+		UpdateSlipVelo();
 	}
 	public void SetControls (ControlProxy control) {
 		steer = control.steer;
@@ -112,6 +113,7 @@ public class CarPhysics : MonoBehaviour {
 			totalWheelTorque *= -1;
 			wheelResistance *= -1;
 		}
+
 		foreach(Wheel wheel in wheels) {
 			if( wheel.driveWheel ) {
 				wheel.collider.motorTorque = (totalWheelTorque - ( wheelResistance * wheel.collider.radius)) / driveWheelCount;
@@ -169,17 +171,22 @@ public class CarPhysics : MonoBehaviour {
 		}
 	}
 	
-	void UpdateForwardSlipVelo () {
+	void UpdateSlipVelo () {
 		WheelHit hit;
 		bool grounded = false;
+		slipVeloForward = 0f;
+		slipVeloSideways = 0f;
 		foreach(Wheel wheel in wheels) {
 			grounded = wheel.collider.GetGroundHit(out hit);
 			if ( grounded ) {
 				//slipVelo = Mathf.Sqrt(hit.forwardSlip * hit.forwardSlip + hit.sidewaysSlip * hit.sidewaysSlip);
-				slipVeloForward = hit.forwardSlip;
+				slipVeloForward += hit.forwardSlip;
+				slipVeloSideways += hit.sidewaysSlip;
+				//slipVeloSidways = hit.sidewaysSlip;
 			}
 		}
 		slipVeloForward /= wheels.Length;
+		slipVeloSideways /= wheels.Length;
 	}
 
 	void UpdateBumps () {

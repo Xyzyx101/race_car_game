@@ -22,7 +22,6 @@ public class TrackPath : MonoBehaviour {
 		totalLength += segmentLengths[segments2D.Length - 1];
 	}
 	
-	// Update is called once per frame
 	void Update () {
 		//Debug Draw Path
 		for(int i = 0; i < segments2D.Length - 1; i++) {
@@ -42,42 +41,58 @@ public class TrackPath : MonoBehaviour {
 	 * consecutivly rather than search the whole path every time. */
 	public float GetNearestParam(out Vector2 targetPoint, Vector2 position, float currentParam ) {
 		float segmentTotal = 0f;
-		int currentSegment = 0;
+		int targetSegment = 0;
+		currentParam %= totalLength; // this just any overflow after each lap
 		if (currentParam < segmentLengths[0]) {
-			currentSegment = 0;
-		} else if (currentParam > totalLength) {
-			Debug.LogError("Path parameter exceedes path length");
+			targetSegment = 0;
 		} else {
 			for(int i = 0; i < segmentLengths.Length; i++) {
 				if (segmentTotal + segmentLengths[i] > currentParam) {
-					currentSegment = i;
+					targetSegment = i;
 					break;
 				}
 				segmentTotal += segmentLengths[i];
 			}
 		}
 		float shortestDistance2 = Mathf.Infinity; //shortest distance squared
-		int targetSegment = 0;
-		targetPoint = segments2D[currentSegment];
+
+		targetPoint = segments2D[targetSegment];
+
 		float newDistance2; // new distanceSquared
+		int searchSegment = targetSegment;
 		do {
-			int nextSegment = currentSegment == segments2D.Length - 1 ? 0 : currentSegment + 1; //if current segment is the last segment then next is 0
-			//Debug.Log(currentSegment + "  " + nextSegment);
-			Vector2 nearestPoint = NearestPointOnLine(position, segments2D[currentSegment], segments2D[nextSegment]);
+			int nextSegment = searchSegment == segments2D.Length - 1 ? 0 : searchSegment + 1; //if current segment is the last segment then next is 0
+			Vector2 nearestPoint = NearestPointOnLine(position, segments2D[searchSegment], segments2D[nextSegment]);
 			newDistance2 = (nearestPoint - position).sqrMagnitude;
-			if ( newDistance2 < shortestDistance2 ) {
-				shortestDistance2 = newDistance2;
-				targetPoint = nearestPoint;
-				targetSegment = currentSegment;
-			}
-			currentSegment = currentSegment == segments2D.Length - 1 ? 0 : currentSegment + 1;// increment unless it is the last segment then go to 0
-		} while (newDistance2 <= shortestDistance2);
+			if ( newDistance2 > shortestDistance2 ) break;
+			targetSegment = searchSegment;
+			shortestDistance2 = newDistance2;
+			targetPoint = nearestPoint;
+			searchSegment = nextSegment; //currentSegment == segments2D.Length - 1 ? 0 : currentSegment + 1;// increment unless it is the last segment then go to 0
+		} while ( true );
 		float newParam = 0;
 		for(int i = 0; i < targetSegment; i++) {
 			newParam += segmentLengths[i];
 		}
+		float sumOfSegments = newParam;
 		newParam += (targetPoint - segments2D[targetSegment]).magnitude;
-		return newParam;
+
+		Debug.Log("currentParam:" + currentParam + "  newParam:" + newParam + "  targetSegement:" + targetSegment + "  new>curr:" + (newParam > currentParam).ToString());
+
+		if ( newParam >= currentParam ) {
+			return newParam;
+		} else {
+			int nextSegment = targetSegment == segments2D.Length - 1 ? 0 : targetSegment + 1;
+			//float partialSegment = currentParam % sumOfSegments;
+			Debug.Log("Before:" + targetPoint);
+			float partialSegment = currentParam - sumOfSegments;
+			Debug.Log(partialSegment);
+			//Debug.Log( (segments2D[nextSegment] - segments2D[targetSegment]).normalized * partialSegment);
+			
+			targetPoint = segments2D[targetSegment] + (segments2D[nextSegment] - segments2D[targetSegment]).normalized * partialSegment;
+			Debug.Log("After" + targetPoint);
+			return currentParam;
+		}
 	}
 
 	/* This will return the the nearest point on Vector(start, end) to the point p

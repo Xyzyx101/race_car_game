@@ -1030,8 +1030,8 @@ MonoBehaviour:
   diffRatio: 3.30999994
   currentGear: 1
   automaticTrans: 1
-  autoShiftUp: 4200
-  autoShiftDown: 2800
+  autoShiftUp: 4600
+  autoShiftDown: 3200
   idleRPM: 700
   redline: 8000
   engineEfficiancy: .829999983
@@ -1039,6 +1039,7 @@ MonoBehaviour:
   speed: 0
   inertiaFactor: 1.5
   slipVeloForward: 0
+  slipVeloSideways: 0
   steer: 0
   throttle: 0
   brake: 0
@@ -1104,8 +1105,10 @@ MonoBehaviour:
   path: {fileID: 1335716192}
   car: {fileID: 706686477}
   currentPathParam: 0
-  lookAhead: 1
+  lookAhead: 2
   debugUseAI: 0
+  debugUseBreak: 0
+  maxSidewaysSlip: 0
 --- !u!1 &714232171
 GameObject:
   m_ObjectHideFlags: 0
@@ -1315,11 +1318,23 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 11400010, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
       propertyPath: lookAhead
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 11400002, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
       propertyPath: redline
       value: 8000
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400002, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
+      propertyPath: autoShiftUp
+      value: 4600
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400002, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
+      propertyPath: autoShiftDown
+      value: 3200
+      objectReference: {fileID: 0}
+    - target: {fileID: 11400010, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
+      propertyPath: debugUseBreak
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: fc5bccfb286b949f6a0d8b6c4fc1ee4c, type: 2}
