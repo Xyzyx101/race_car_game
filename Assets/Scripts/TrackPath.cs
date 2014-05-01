@@ -77,7 +77,7 @@ public class TrackPath : MonoBehaviour {
 		float sumOfSegments = newParam;
 		newParam += (targetPoint - segments2D[targetSegment]).magnitude;
 
-		Debug.Log("currentParam:" + currentParam + "  newParam:" + newParam + "  targetSegement:" + targetSegment + "  new>curr:" + (newParam > currentParam).ToString());
+		//Debug.Log("currentParam:" + currentParam + "  newParam:" + newParam + "  targetSegement:" + targetSegment + "  new>curr:" + (newParam > currentParam).ToString());
 
 		if ( newParam >= currentParam ) {
 			return newParam;
