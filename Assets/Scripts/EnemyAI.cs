@@ -113,8 +113,16 @@ public class EnemyAI : MonoBehaviour {
 
 		//Debug.Log("brake:" + control.brake + "  steer:" + control.steer + "  ebrake:" + control.eBrake + "  slipF:" + car.slipVeloForward + "  slipS:" + car.slipVeloSideways);
 		
-		//FIXME
-		control.gear = 4;
+		control.gear = car.currentGear;
+		if (car.engineRPM > car.autoShiftUp) {
+			if (car.currentGear < car.gearRatios.Length - 1) {
+				car.currentGear += 1;
+			}
+		} else if (car.engineRPM < car.autoShiftDown) {
+			if (car.currentGear > 1) {
+				car.currentGear -= 1;
+			}
+		}
 
 		//Debug.Log("steer:" + control.steer + "  throttle:" + control.throttle + "  brake:" + control.brake);
 
