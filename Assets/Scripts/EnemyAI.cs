@@ -24,21 +24,26 @@ public class EnemyAI : MonoBehaviour {
 		car2DVelocity = new Vector2(car.rigidbody.velocity.x, car.rigidbody.velocity.z);
 		Vector2 car2D = new Vector2(car.transform.position.x, car.transform.position.z);
 		Vector2 car2DForward = new Vector2(car.transform.forward.x, car.transform.forward.z).normalized;
-		DebugDisplay3D(car2DForward, Color.yellow);
 
-		Vector2 projection = car2DForward * Mathf.Max(5f, Vector2.Dot(car2DVelocity, car2DForward)) * lookAhead;
-		
-		DebugDisplay3D(projection, Color.blue);
-		Vector2 targetPoint;
-		currentPathParam = path.GetNearestParam(out targetPoint, car2D + projection, currentPathParam );
-		if ( (targetPoint - car2D).sqrMagnitude < 100 ) {
+		Vector2 projection;
+		if (Vector2.Dot(car2DVelocity, car2DForward) < 5.0f) {
+			projection = car2DForward * 5.0f * lookAhead;
+			DebugDisplay3D(projection, Color.blue);
+		} else {
+			projection = car2DVelocity * lookAhead;
+			DebugDisplay3D(projection, Color.yellow);
+		}
+
+		AI.Target target = new AI.Target();
+		currentPathParam = path.GetNearestParam(ref target, car2D + projection, currentPathParam );
+		if ( (target.position - car2D).sqrMagnitude < 100 ) {
 			currentPathParam += 10f;
 		}
 		Vector3 start = new Vector3((car2D + projection).x, car.transform.position.y, (car2D + projection).y);
-		Vector3 end = new Vector3(targetPoint.x, car.transform.position.y, targetPoint.y);
+		Vector3 end = new Vector3(target.position.x, car.transform.position.y, target.position.y);
 		Debug.DrawLine(start, end, Color.red);
 
-		DriveActuator(targetPoint);
+		DriveActuator(target.position);
 	}
 	void DriveActuator (Vector2 target) {
 
@@ -63,27 +68,28 @@ public class EnemyAI : MonoBehaviour {
 		Vector2 carPos2D = new Vector2(car.transform.position.x, car.transform.position.z);
 
 		Vector2 targetDir = (target - carPos2D).normalized;
-		DebugDisplay3D(forward2D, Color.yellow);
-		DebugDisplay3D(targetDir, Color.grey);
-		//Debug.Log("forward:" + forward2D + "target:" + targetDir);
-		//Debug.Log (Vector2.Dot(forward2D, targetDir));
+
 		float targetAngle = Vector2.Angle(targetDir, forward2D) * Mathf.Deg2Rad;
 
 		Vector3 localTarget = car.transform.InverseTransformDirection(new Vector3(targetDir.x, 0f, targetDir.y));
 
 		ControlProxy control = new ControlProxy();
+
+		// note Mathf.Sign() is not Mathf.Sin()
 		control.steer = Mathf.Clamp(targetAngle * Mathf.Rad2Deg * Mathf.Sign(localTarget.x) / car.steerMax, -1f, 1f);
+		//Debug.Log("targetAngle:" + targetAngle + "  Sin(localTarget.x)" + Mathf.Sin (localTarget.x));
 
 		if ( targetAngle < forwardAngle ) {
-			//Debug.Log("forward and turn");
+			Debug.Log("forward and turn");
 			control.throttle = Mathf.Max(0.25f, Mathf.Abs(localTarget.z));
-
+			if (car.speed < 0) control.steer *= -1;
 		} else if ( targetAngle > backAngle ) {
-			//Debug.Log("backwards");
+			Debug.Log("backwards");
 			if ( debugUseBreak ) Debug.Break();
 			
 			if (car.speed < 5.0f) {
 				control.steer *= -1;
+				Debug.Log(control.steer);
 				control.throttle = 1.0f;
 				control.reverse = true;
 			} else {
@@ -92,7 +98,7 @@ public class EnemyAI : MonoBehaviour {
 			}
 
 		} else {
-			//Debug.Log("brake and turn");
+			Debug.Log("brake and turn");
 			control.throttle = 0f;
 			control.brake = Mathf.Max(0f, localTarget.z);
 			if ( control.brake < 0 ) {
@@ -135,4 +141,13 @@ public class EnemyAI : MonoBehaviour {
 	}
 }
 
-
+namespace AI {
+	public struct Target {
+		public bool hasPosition;
+		public Vector2 position;
+		public bool hasDirection;
+		public Vector2 direction;
+		public bool hasVelocity;
+		public float velocity;
+	}
+}

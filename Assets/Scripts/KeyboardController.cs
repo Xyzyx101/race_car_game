@@ -209,7 +209,7 @@ public class KeyboardController : MonoBehaviour {
 				}
 			}
 			//Debug.Log(car.speed + " " + forwardInput + " " + backInput);
-			Debug.Log("forwardInput:" + forwardInput + "  backInput:" + backInput);
+			//Debug.Log("forwardInput:" + forwardInput + "  backInput:" + backInput);
 			if ( Mathf.Abs(car.speed) < 2.0f && !forwardInput && backInput ) {
 				Debug.Log("N");
 				newGear = 0;

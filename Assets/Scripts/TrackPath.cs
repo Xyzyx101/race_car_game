@@ -39,7 +39,8 @@ public class TrackPath : MonoBehaviour {
 	 * This calculates the nearest param on the path to position.  currentParam is used
 	 * so that the search will start at a specific spot on the path and continue 
 	 * consecutivly rather than search the whole path every time. */
-	public float GetNearestParam(out Vector2 targetPoint, Vector2 position, float currentParam ) {
+	public float GetNearestParam(ref AI.Target target, Vector2 position, float currentParam ) {
+		target.hasPosition = true;
 		float segmentTotal = 0f;
 		int targetSegment = 0;
 		currentParam %= totalLength; // this just any overflow after each lap
@@ -56,7 +57,7 @@ public class TrackPath : MonoBehaviour {
 		}
 		float shortestDistance2 = Mathf.Infinity; //shortest distance squared
 
-		targetPoint = segments2D[targetSegment];
+		target.position = segments2D[targetSegment];
 
 		float newDistance2; // new distanceSquared
 		int searchSegment = targetSegment;
@@ -67,7 +68,7 @@ public class TrackPath : MonoBehaviour {
 			if ( newDistance2 > shortestDistance2 ) break;
 			targetSegment = searchSegment;
 			shortestDistance2 = newDistance2;
-			targetPoint = nearestPoint;
+			target.position = nearestPoint;
 			searchSegment = nextSegment; //currentSegment == segments2D.Length - 1 ? 0 : currentSegment + 1;// increment unless it is the last segment then go to 0
 		} while ( true );
 		float newParam = 0;
@@ -75,22 +76,17 @@ public class TrackPath : MonoBehaviour {
 			newParam += segmentLengths[i];
 		}
 		float sumOfSegments = newParam;
-		newParam += (targetPoint - segments2D[targetSegment]).magnitude;
+		newParam += (target.position - segments2D[targetSegment]).magnitude;
 
-		//Debug.Log("currentParam:" + currentParam + "  newParam:" + newParam + "  targetSegement:" + targetSegment + "  new>curr:" + (newParam > currentParam).ToString());
+		target.hasDirection = true;
+		int directionSegment = targetSegment == segments2D.Length - 1 ? 0 : targetSegment + 1;
+		target.direction = (segments2D[directionSegment] - segments2D[targetSegment]).normalized;
 
 		if ( newParam >= currentParam ) {
 			return newParam;
 		} else {
-			int nextSegment = targetSegment == segments2D.Length - 1 ? 0 : targetSegment + 1;
-			//float partialSegment = currentParam % sumOfSegments;
-			Debug.Log("Before:" + targetPoint);
 			float partialSegment = currentParam - sumOfSegments;
-			Debug.Log(partialSegment);
-			//Debug.Log( (segments2D[nextSegment] - segments2D[targetSegment]).normalized * partialSegment);
-			
-			targetPoint = segments2D[targetSegment] + (segments2D[nextSegment] - segments2D[targetSegment]).normalized * partialSegment;
-			Debug.Log("After" + targetPoint);
+			target.position = segments2D[targetSegment] + target.direction * partialSegment;
 			return currentParam;
 		}
 	}
