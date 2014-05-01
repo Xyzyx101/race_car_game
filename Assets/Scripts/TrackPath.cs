@@ -61,11 +61,13 @@ public class TrackPath : MonoBehaviour {
 
 		float newDistance2; // new distanceSquared
 		int searchSegment = targetSegment;
+		bool fullLap = false;
 		do {
 			int nextSegment = searchSegment == segments2D.Length - 1 ? 0 : searchSegment + 1; //if current segment is the last segment then next is 0
 			Vector2 nearestPoint = NearestPointOnLine(position, segments2D[searchSegment], segments2D[nextSegment]);
 			newDistance2 = (nearestPoint - position).sqrMagnitude;
 			if ( newDistance2 > shortestDistance2 ) break;
+			if ( nextSegment == 0 ) fullLap = true;
 			targetSegment = searchSegment;
 			shortestDistance2 = newDistance2;
 			target.position = nearestPoint;
@@ -83,8 +85,13 @@ public class TrackPath : MonoBehaviour {
 		target.direction = (segments2D[directionSegment] - segments2D[targetSegment]).normalized;
 
 		if ( newParam >= currentParam ) {
+			// moving forward normally. use position calculated above
+			return newParam;
+		} else if (fullLap) {
+			// moving forward edge case where hte new point is just past the zero point in the track.  Use position from above.
 			return newParam;
 		} else {
+			// moving backwards in not allowed.  Recalculate position based on param passed in.
 			float partialSegment = currentParam - sumOfSegments;
 			target.position = segments2D[targetSegment] + target.direction * partialSegment;
 			return currentParam;

@@ -80,11 +80,11 @@ public class EnemyAI : MonoBehaviour {
 		//Debug.Log("targetAngle:" + targetAngle + "  Sin(localTarget.x)" + Mathf.Sin (localTarget.x));
 
 		if ( targetAngle < forwardAngle ) {
-			Debug.Log("forward and turn");
+			//Debug.Log("forward and turn");
 			control.throttle = Mathf.Max(0.25f, Mathf.Abs(localTarget.z));
 			if (car.speed < 0) control.steer *= -1;
 		} else if ( targetAngle > backAngle ) {
-			Debug.Log("backwards");
+			//Debug.Log("backwards");
 			if ( debugUseBreak ) Debug.Break();
 			
 			if (car.speed < 5.0f) {
@@ -98,7 +98,7 @@ public class EnemyAI : MonoBehaviour {
 			}
 
 		} else {
-			Debug.Log("brake and turn");
+			//Debug.Log("brake and turn");
 			control.throttle = 0f;
 			control.brake = Mathf.Max(0f, localTarget.z);
 			if ( control.brake < 0 ) {
