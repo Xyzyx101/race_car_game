@@ -137,7 +137,7 @@ public class CarPhysics : MonoBehaviour {
 		Vector3 relativeDrag = new Vector3( -relativeVelocity.x * Mathf.Abs(relativeVelocity.x),
 		                               -relativeVelocity.y * Mathf.Abs(relativeVelocity.y),
 		                               -relativeVelocity.z * Mathf.Abs(relativeVelocity.z));
-		Vector3 drag = Vector3.Scale(relativeDrag, dragMultiplier);
+		Vector3 drag = transform.TransformDirection(Vector3.Scale(relativeDrag, dragMultiplier));
 		rigidbody.AddForce( drag , ForceMode.Force);
 	}
 	void UpdateWheelPosition () {
