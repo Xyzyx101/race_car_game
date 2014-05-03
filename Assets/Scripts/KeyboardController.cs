@@ -40,24 +40,12 @@ public class KeyboardController : MonoBehaviour {
 
 	public bool canDrive = true;
 
-	//private ControlProxy control = new ControlProxy();
-
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
 	// Update is called once per frame
 	void Update () {
 		ControlProxy control  = new ControlProxy();
 		control.eBrake = Input.GetKey (KeyCode.Space);
-		
-		//steerInput = Mathf.Clamp(Input.GetAxis("Horizontal"), -1, 1);
-		//control.steer = steerInput;
-		SetSteer(ref control);
 
-		//forwardInput = Mathf.Clamp(Input.GetAxis("Vertical"), 0, 1);
-		//backInput = Mathf.Clamp(Input.GetAxis("Vertical"), -1, 0);
+		SetSteer(ref control);
 		
 		forwardInput = Input.GetKey(KeyCode.UpArrow);
 		backInput = Input.GetKey(KeyCode.DownArrow);
@@ -85,7 +73,6 @@ public class KeyboardController : MonoBehaviour {
 		SetBrakes(ref control);
 
 		car.SetControls(control);
-		//DisplayDebug(control);
 	}
 	void SetSteer (ref ControlProxy control) {
 		steerInput = 0;
@@ -104,47 +91,7 @@ public class KeyboardController : MonoBehaviour {
 		float optimalSteering = angle / (car.steerMax * Mathf.Deg2Rad);
 		if (fVelo < 1) optimalSteering = 0;
 
-		Vector3 debugPos = transform.position + new Vector3(0, 2f, 0);
-		//disply carDir
-		Debug.DrawRay(debugPos, carDir, Color.white);
-
-		//display veloDir
-		Debug.DrawRay(debugPos, veloDir, Color.yellow);
-
-		Vector3 optimalAngleDebugDir = transform.TransformDirection(new Vector3(Mathf.Sin(angle),0,Mathf.Cos(angle)));
-		bool debugUseOptimal = false;
-		Debug.DrawRay(debugPos, optimalAngleDebugDir, Color.red);
-
 		float steer = steerInput;
-
-		/*if (steerInput == 0) {
-			float adjustedReleaseTime = 1 / (steerReleaseTime + (car.speed * steerReleaseVeloFactor));
-			if ( car.steer > 0 ) {
-				steer = car.steer - adjustedReleaseTime * Time.deltaTime;
-				if ( steer < 0 ) steer = 0;
-			}
-			if ( car.steer < 0 ) {
-				steer = car.steer + adjustedReleaseTime * Time.deltaTime;
-				if ( steer > 0 ) steer = 0;
-			}
-		} else {
-			float adjustedSteerTime = 1 / (steerTime + (car.speed * steerVeloFactor));
-			steer = Mathf.Clamp(car.steer + steerInput * adjustedSteerTime * Time.deltaTime, -1.0f, 1.0f);
-
-			Debug.Log("steer:" + steer);
-			if ( steer > car.steer) {
-				if ( steer < optimalSteering) {
-					steer = Mathf.Clamp(steer * (1 + (optimalSteering - steer) * steerCorrectionFactor), -1, 1);
-					//Debug.Log ("adjusted steer:"+ steer);
-				}
-			}
-			if ( steer < car.steer) {
-				if ( steer > optimalSteering ) {
-					steer = Mathf.Clamp(steer * (1 + (steer - optimalSteering) * steerCorrectionFactor), -1, 1);
-					//Debug.Log ("-adjusted steer:"+ steer);
-				}
-			}
-		}*/
 		float adjustedSteerTime = 0;
 		if ( steerInput == 0 ) {
 			adjustedSteerTime = 1 / (steerReleaseTime + (Mathf.Abs(car.speed) * steerReleaseVeloFactor));
@@ -164,7 +111,6 @@ public class KeyboardController : MonoBehaviour {
 				}
 				if ( car.steer < optimalSteering ) {
 					adjustedSteerTime *= 1 + (optimalSteering - car.steer) * steerCorrectionFactor;
-					debugUseOptimal = true;
 				}
 			} else if ( steerInput < car.steer ) {
 				if ( car.steer > 0 ) {
@@ -174,15 +120,10 @@ public class KeyboardController : MonoBehaviour {
 				}
 				if ( car.steer > optimalSteering ) {
 					adjustedSteerTime *= 1 + (car.steer - optimalSteering) * steerCorrectionFactor;
-					debugUseOptimal = true;
 				}
 			}
 			steer = Mathf.Clamp(car.steer + steerInput * adjustedSteerTime * Time.deltaTime, -1.0f, 1.0f);
 		}
-				
-		float steerAngle = steer * car.steerMax * Mathf.Deg2Rad;
-		Vector3 debugDir = transform.TransformDirection(new Vector3(Mathf.Sin(steerAngle),0f,Mathf.Cos(steerAngle)));
-		Debug.DrawRay(debugPos, debugDir, debugUseOptimal ? Color.yellow : Color.green);
 		control.steer = steer;
 	}
 	void SetGear (ref ControlProxy control) {
@@ -195,7 +136,6 @@ public class KeyboardController : MonoBehaviour {
 				} else if( backInput ) {
 					newGear = 1;
 					control.reverse = true;
-					Debug.Log("SetGear() control.reverse = true");
 				}
 			}
 		} else if ( car.automaticTrans ) {
@@ -208,10 +148,7 @@ public class KeyboardController : MonoBehaviour {
 					newGear = car.currentGear - 1;
 				}
 			}
-			//Debug.Log(car.speed + " " + forwardInput + " " + backInput);
-			//Debug.Log("forwardInput:" + forwardInput + "  backInput:" + backInput);
 			if ( Mathf.Abs(car.speed) < 2.0f && !forwardInput && backInput ) {
-				Debug.Log("N");
 				newGear = 0;
 				canDrive = false;
 			}
@@ -245,15 +182,5 @@ public class KeyboardController : MonoBehaviour {
 		} else {
 			control.brake = Mathf.Clamp01(car.brake - brakeReleaseTime * Time.deltaTime);
 		}
-	}
-	void DisplayDebug (ControlProxy control) {
-		//Display steering input
-		Vector3 steeringStart = new Vector3(steerInput, -1.0f, 0.0f);
-		Debug.DrawRay(transform.TransformPoint(steeringStart), Vector3.up * 2, Color.blue);
-
-		//Display steering output
-		steeringStart = new Vector3(control.steer, -1.0f, 0.0f);
-		Debug.DrawRay(transform.TransformPoint(steeringStart), Vector3.up * 2, Color.green);
-
 	}
 }
