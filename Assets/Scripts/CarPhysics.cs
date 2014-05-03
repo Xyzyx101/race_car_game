@@ -103,26 +103,17 @@ public class CarPhysics : MonoBehaviour {
 		}
 		float delta = 1 - (engineRPM - idleRPM) / ( redline - idleRPM);
 		float totalWheelTorque = torqueCurve.Evaluate(engineRPM) * gearRatios[currentGear] * diffRatio * throttle * engineEfficiancy * delta;
-		float wheelResistance = CalculateRollingResistance();
 
-		if ( reverse ) {
-			totalWheelTorque *= -1;
-			wheelResistance *= -1;
-		}
-
+		float forcePerWheel = rigidbody.mass * -Physics.gravity.y / wheels.Length;
+		float torquePerWheel = totalWheelTorque / driveWheelCount;
 		foreach(Wheel wheel in wheels) {
 			if( wheel.driveWheel ) {
-				wheel.collider.motorTorque = (totalWheelTorque - ( wheelResistance * wheel.collider.radius)) / driveWheelCount;
+				float rollingResCoef = wheel.baseRollingCoefficient + wheel.terrainRollingCoefficient * (1 - wheel.terrainBonus);
+				float wheelResistance = Mathf.Clamp(rollingResCoef * forcePerWheel, 0f, torquePerWheel);
+				wheel.collider.motorTorque = torquePerWheel - wheelResistance;
+				if (reverse) wheel.collider.motorTorque *= -1;
 			}
 		}
-	}
-	float CalculateRollingResistance () {
-		float rollingResistance = 0;
-		foreach(Wheel wheel in wheels) {
-			rollingResistance += wheel.baseRollingResistance + wheel.terrainResistanceEffect * wheel.terrainResistanceInfluence;
-		}
-		rollingResistance /= wheels.Length;
-		return rollingResistance * rigidbody.mass;
 	}
 	void UpdateDrag (Vector3 relativeVelocity) {
 		Vector3 relativeDrag = new Vector3( -relativeVelocity.x * Mathf.Abs(relativeVelocity.x),
@@ -216,10 +207,12 @@ public class Wheel {
 	public bool eBrake;
 
 	public TerrainEffects.Type currentTerrain;
-	public float baseRollingResistance;
-	public float terrainResistanceEffect;
+
+	public float baseRollingCoefficient;
+	/* terrainBonus is the percentage of terrain resistance that is ignored. 0 for slicks, 0.1 for road tires, 0.6 for knobby offroad tires for example*/
+	public float terrainBonus;
 	[HideInInspector]
-	public float terrainResistanceInfluence;
+	public float terrainRollingCoefficient;
 	[HideInInspector]
 	public float bumpInterval;
 	[HideInInspector]

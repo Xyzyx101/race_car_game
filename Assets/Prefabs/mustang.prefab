@@ -530,9 +530,9 @@ MonoBehaviour:
     driveWheel: 0
     eBrake: 0
     currentTerrain: 0
-    baseRollingResistance: .5
-    terrainResistanceEffect: 20
-    terrainResistanceInfluence: 0
+    baseRollingCoefficient: .0299999993
+    terrainBonus: .100000001
+    terrainRollingCoefficient: 0
     bumpInterval: 0
     bumpPower: 0
     nextBump: 0
@@ -543,9 +543,9 @@ MonoBehaviour:
     driveWheel: 0
     eBrake: 0
     currentTerrain: 0
-    baseRollingResistance: .5
-    terrainResistanceEffect: 20
-    terrainResistanceInfluence: 0
+    baseRollingCoefficient: .0299999993
+    terrainBonus: .100000001
+    terrainRollingCoefficient: 0
     bumpInterval: 0
     bumpPower: 0
     nextBump: 0
@@ -556,9 +556,9 @@ MonoBehaviour:
     driveWheel: 1
     eBrake: 1
     currentTerrain: 0
-    baseRollingResistance: .5
-    terrainResistanceEffect: 20
-    terrainResistanceInfluence: 0
+    baseRollingCoefficient: .0299999993
+    terrainBonus: .100000001
+    terrainRollingCoefficient: 0
     bumpInterval: 0
     bumpPower: 0
     nextBump: 0
@@ -569,14 +569,14 @@ MonoBehaviour:
     driveWheel: 1
     eBrake: 1
     currentTerrain: 0
-    baseRollingResistance: .5
-    terrainResistanceEffect: 20
-    terrainResistanceInfluence: 0
+    baseRollingCoefficient: .0299999993
+    terrainBonus: .100000001
+    terrainRollingCoefficient: 0
     bumpInterval: 0
     bumpPower: 0
     nextBump: 0
     localOrigin: {x: 0, y: 0, z: 0}
-  steerMaxDeg: 28
+  steerMax: 28
   brakeTorqueMax: 4000
   eBrakeTorqueMax: 6000
   dragMultiplier: {x: 2, y: 5, z: .600000024}

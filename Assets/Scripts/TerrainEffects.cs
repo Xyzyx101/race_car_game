@@ -14,7 +14,7 @@ public class TerrainEffects : MonoBehaviour {
 		public float grip;
 		public float bumpInterval;
 		public float bumpPower;
-		public float resistance;
+		public float rollingCoefficient;
 		public Vector3 color;
 	}
 	private Dictionary<Type, Effect> effectDict = new Dictionary<Type, Effect>();
@@ -33,10 +33,8 @@ public class TerrainEffects : MonoBehaviour {
 
 			RaycastHit hit;
 			if( Physics.Raycast(castPoint, dir, out hit, distance) ) {
-				//Debug.Log (hit.point);
 				Debug.DrawRay(castPoint, dir, Color.black);
 				Vector2 texUV = hit.textureCoord;
-				//Debug.Log(texCoord);
 				int texCoordX = Mathf.CeilToInt(texUV.x * terrainTex.width);
 				int texCoordY = Mathf.CeilToInt(texUV.y * terrainTex.height);
 				
@@ -45,12 +43,11 @@ public class TerrainEffects : MonoBehaviour {
 				Effect effect = CalcClosestEffect(colorVector);
 
 				if (wheel.currentTerrain == effect.type) continue;
-				//Debug.Log("Update Wheel:  color:" + colorVector + "  type:" + effect.type);
 				
 				wheel.currentTerrain = effect.type;
 
 				//this changes the rolling resistance of the car
-				wheel.terrainResistanceInfluence = effect.resistance;
+				wheel.terrainRollingCoefficient = effect.rollingCoefficient;
 
 				//this changes the grip of the tires
 				WheelFrictionCurve tempCurve = wheel.collider.forwardFriction;
@@ -77,7 +74,7 @@ public class TerrainEffects : MonoBehaviour {
 		effect.grip = 1.0f;
 		effect.bumpInterval = 0.0f;
 		effect.bumpPower = 0.0f;
-		effect.resistance = 0.0f;
+		effect.rollingCoefficient = 0.01f;
 		effect.color = new Vector3(0.5f, 0.5f, 0.5f); //med grey
 		effectDict.Add(Type.Asphalt, effect);
 
@@ -86,8 +83,8 @@ public class TerrainEffects : MonoBehaviour {
 		effect.type = Type.Dirt;
 		effect.grip = 0.7f;
 		effect.bumpInterval = 0.7f;
-		effect.bumpPower = 2.0f;
-		effect.resistance = 0.5f;
+		effect.bumpPower = 1.2f;
+		effect.rollingCoefficient = 0.25f;
 		effect.color = new Vector3(1.0f, 0.0f, 0.0f); //red
 		effectDict.Add(Type.Dirt, effect);
 
@@ -97,7 +94,7 @@ public class TerrainEffects : MonoBehaviour {
 		effect.grip = 0.8f;
 		effect.bumpInterval = 0.3f;
 		effect.bumpPower = 0.6f;
-		effect.resistance = 0.2f;
+		effect.rollingCoefficient = 0.08f;
 		effect.color = new Vector3(0.0f,1.0f, 0.0f); // green
 		effectDict.Add(Type.Grass, effect);
 
@@ -107,7 +104,7 @@ public class TerrainEffects : MonoBehaviour {
 		effect.grip = 0.6f;
 		effect.bumpInterval = 0.3f;
 		effect.bumpPower = 0.4f;
-		effect.resistance = 0.4f;
+		effect.rollingCoefficient = 0.15f;
 		effect.color = new Vector3(1.0f, 1.0f, 1.0f); // white
 		effectDict.Add(Type.Snow, effect);
 
@@ -117,7 +114,7 @@ public class TerrainEffects : MonoBehaviour {
 		effect.grip = 0.2f;
 		effect.bumpInterval = 0.0f;
 		effect.bumpPower = 0.0f;
-		effect.resistance = 0.0f;
+		effect.rollingCoefficient = 0.0f;
 		effect.color = new Vector3(0f, 1.0f, 1.0f); //cyan
 		effectDict.Add(Type.Ice, effect);
 
@@ -127,22 +124,17 @@ public class TerrainEffects : MonoBehaviour {
 		effect.grip = 0.7f;
 		effect.bumpInterval = 0.4f;
 		effect.bumpPower = 0.4f;
-		effect.resistance = 0.8f;
+		effect.rollingCoefficient = 0.35f;
 		effect.color = new Vector3(1.0f, 1.0f, 0f); //yellow
 		effectDict.Add(Type.Sand, effect);
 
 	}
 	public Effect CalcClosestEffect(Vector3 mapColor) {
-		//Type closestKey = Type.Asphalt;
 		Effect closestEffect = effectDict[Type.Asphalt];
 		float closestDistanceSquared = Mathf.Infinity;
 		foreach(KeyValuePair<Type, Effect> entry in effectDict) {
 			float distanceSquared = (entry.Value.color - mapColor).sqrMagnitude;
-
-			//Debug.Log(entry.Key + " mapColor:" + mapColor + " entryColor:" + entry.Value.color + " distSqr:" + distanceSquared);
-			
 			if (distanceSquared < closestDistanceSquared) {
-				//closestKey = entry.Key;
 				closestEffect = entry.Value;
 				closestDistanceSquared = distanceSquared;
 			}
