@@ -281,7 +281,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 100014}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: .464238167, z: .227864385}
+  m_LocalPosition: {x: -1.40367945e-07, y: .39322257, z: .430786133}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 400006}
@@ -576,10 +576,10 @@ MonoBehaviour:
     bumpPower: 0
     nextBump: 0
     localOrigin: {x: 0, y: 0, z: 0}
-  steerMax: 28
+  steerMaxDeg: 28
   brakeTorqueMax: 4000
   eBrakeTorqueMax: 6000
-  dragMultiplier: {x: .0299999993, y: .0500000007, z: .0199999996}
+  dragMultiplier: {x: 2, y: 5, z: .600000024}
   centerOfMass: {fileID: 400014}
   torqueCurve:
     serializedVersion: 2
@@ -600,11 +600,13 @@ MonoBehaviour:
   autoShiftUp: 4200
   autoShiftDown: 2800
   idleRPM: 700
-  redline: 7000
+  redline: 8000
+  engineEfficiancy: .829999983
   engineRPM: 0
   speed: 0
   inertiaFactor: 1.5
   slipVeloForward: 0
+  slipVeloSideways: 0
   steer: 0
   throttle: 0
   brake: 0
@@ -666,6 +668,10 @@ MonoBehaviour:
   path: {fileID: 0}
   car: {fileID: 11400002}
   currentPathParam: 0
+  lookAhead: 1
+  debugUseAI: 0
+  debugUseBreak: 0
+  maxSidewaysSlip: 0
 --- !u!146 &14600000
 WheelCollider:
   m_ObjectHideFlags: 1

@@ -33,8 +33,6 @@ public class CarPhysics : MonoBehaviour {
 	
 
 	public float steer = 0;
-	//private float forward = 0;
-	//private float back = 0;
 	public float throttle = 0;
 	public float brake = 0;
 	public bool reverse = false;
@@ -105,9 +103,7 @@ public class CarPhysics : MonoBehaviour {
 		}
 		float delta = 1 - (engineRPM - idleRPM) / ( redline - idleRPM);
 		float totalWheelTorque = torqueCurve.Evaluate(engineRPM) * gearRatios[currentGear] * diffRatio * throttle * engineEfficiancy * delta;
-		//Debug.Log("delta:" + delta + "  totalTorque:" + totalWheelTorque);
 		float wheelResistance = CalculateRollingResistance();
-		//float minTorque = rigidbody.mass * throttle / driveWheelCount;
 
 		if ( reverse ) {
 			totalWheelTorque *= -1;
@@ -117,8 +113,6 @@ public class CarPhysics : MonoBehaviour {
 		foreach(Wheel wheel in wheels) {
 			if( wheel.driveWheel ) {
 				wheel.collider.motorTorque = (totalWheelTorque - ( wheelResistance * wheel.collider.radius)) / driveWheelCount;
-				//wheel.collider.motorTorque = wheel.collider.motorTorque < minTorque ? minTorque : wheel.collider.motorTorque;
-				//Debug.Log("torque:" + totalWheelTorque + "  resistance:" + wheelResistance * wheel.collider.radius);
 			}
 		}
 	}
@@ -126,11 +120,8 @@ public class CarPhysics : MonoBehaviour {
 		float rollingResistance = 0;
 		foreach(Wheel wheel in wheels) {
 			rollingResistance += wheel.baseRollingResistance + wheel.terrainResistanceEffect * wheel.terrainResistanceInfluence;
-			//Debug.Log("wheelRollRes:" + rollingResistance);
 		}
 		rollingResistance /= wheels.Length;
-		//Vector3 rollingFactor = -transform.forward * rollingResistance * rigidbody.mass;
-		//rollingFactor = Vector3.zero;
 		return rollingResistance * rigidbody.mass;
 	}
 	void UpdateDrag (Vector3 relativeVelocity) {
@@ -179,10 +170,8 @@ public class CarPhysics : MonoBehaviour {
 		foreach(Wheel wheel in wheels) {
 			grounded = wheel.collider.GetGroundHit(out hit);
 			if ( grounded ) {
-				//slipVelo = Mathf.Sqrt(hit.forwardSlip * hit.forwardSlip + hit.sidewaysSlip * hit.sidewaysSlip);
 				slipVeloForward += hit.forwardSlip;
 				slipVeloSideways += hit.sidewaysSlip;
-				//slipVeloSidways = hit.sidewaysSlip;
 			}
 		}
 		slipVeloForward /= wheels.Length;
@@ -190,8 +179,6 @@ public class CarPhysics : MonoBehaviour {
 	}
 
 	void UpdateBumps () {
-		//float bumpInterval = 0.1f;
-		//float bumpPower = 500f;
 		float bumpRadius = 0f;
 		float upModifier = 0f;
 		foreach(Wheel wheel in wheels) {

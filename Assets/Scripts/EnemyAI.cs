@@ -34,22 +34,22 @@ public class EnemyAI : MonoBehaviour {
 			DebugDisplay3D(projection, Color.yellow);
 		}
 
-		AI.Target target = new AI.Target();
-		currentPathParam = path.GetNearestParam(ref target, car2D + projection, currentPathParam );
-		if ( (target.position - car2D).sqrMagnitude < 100 ) {
+		AI.Goal goal = new AI.Goal();
+		currentPathParam = path.GetNearestParam(ref goal, car2D + projection, currentPathParam );
+		if ( (goal.position - car2D).sqrMagnitude < 100 ) {
 			currentPathParam += 10f;
 		}
 		Vector3 start = new Vector3((car2D + projection).x, car.transform.position.y, (car2D + projection).y);
-		Vector3 end = new Vector3(target.position.x, car.transform.position.y, target.position.y);
+		Vector3 end = new Vector3(goal.position.x, car.transform.position.y, goal.position.y);
 		Debug.DrawLine(start, end, Color.red);
 
-		DriveActuator(target.position);
+		DriveActuator(goal);
 	}
-	void DriveActuator (Vector2 target) {
+	void DriveActuator (AI.Goal goal) {
 
 		// min and max refers to the speed of the car not the size of the angle
 		float minForwardAngle = 120f * Mathf.Deg2Rad;
-		float maxForwardAngle = car.steerMax * Mathf.Deg2Rad / 2;
+		float maxForwardAngle = car.steerMax * Mathf.Deg2Rad / 4;
 
 		float minBackAngle = 120f * Mathf.Deg2Rad;
 		float maxBackAngle = 170f * Mathf.Deg2Rad;
@@ -67,58 +67,43 @@ public class EnemyAI : MonoBehaviour {
 		Vector2 forward2D = new Vector2(car.transform.forward.x, car.transform.forward.z).normalized;
 		Vector2 carPos2D = new Vector2(car.transform.position.x, car.transform.position.z);
 
-		Vector2 targetDir = (target - carPos2D).normalized;
-
-		float targetAngle = Vector2.Angle(targetDir, forward2D) * Mathf.Deg2Rad;
-
-		Vector3 localTarget = car.transform.InverseTransformDirection(new Vector3(targetDir.x, 0f, targetDir.y));
-
 		ControlProxy control = new ControlProxy();
 
-		// note Mathf.Sign() is not Mathf.Sin()
-		control.steer = Mathf.Clamp(targetAngle * Mathf.Rad2Deg * Mathf.Sign(localTarget.x) / car.steerMax, -1f, 1f);
-		//Debug.Log("targetAngle:" + targetAngle + "  Sin(localTarget.x)" + Mathf.Sin (localTarget.x));
+		// New steer based on direction
+		Vector2 targetDir = (goal.position - carPos2D).normalized;
+		float goalAngle = Vector2.Angle(goal.direction, forward2D) * Mathf.Deg2Rad;
 
-		if ( targetAngle < forwardAngle ) {
-			//Debug.Log("forward and turn");
+		if ( goalAngle < forwardAngle ) {
+			// targetAngle will try to match position with the goal
+			float targetAngle = Vector2.Angle(targetDir, forward2D) * Mathf.Deg2Rad;
+			Vector3 localTarget = car.transform.InverseTransformDirection(new Vector3(targetDir.x, 0f, targetDir.y));
+			control.steer = Mathf.Clamp(targetAngle * Mathf.Sign(localTarget.x) / (car.steerMax * Mathf.Deg2Rad), -1f, 1f); // note Mathf.Sign() is not Mathf.Sin()
 			control.throttle = Mathf.Max(0.25f, Mathf.Abs(localTarget.z));
 			if (car.speed < 0) control.steer *= -1;
-		} else if ( targetAngle > backAngle ) {
-			//Debug.Log("backwards");
+		} else if ( goalAngle > backAngle ) {
 			if ( debugUseBreak ) Debug.Break();
-			
+			float targetAngle = Vector2.Angle(targetDir, forward2D) * Mathf.Deg2Rad;
+			Vector3 localTarget = car.transform.InverseTransformDirection(new Vector3(targetDir.x, 0f, targetDir.y));
+			control.steer = Mathf.Clamp(targetAngle * Mathf.Sign(localTarget.x) / (car.steerMax * Mathf.Deg2Rad), -1f, 1f); // note Mathf.Sign() is not Mathf.Sin()
 			if (car.speed < 5.0f) {
 				control.steer *= -1;
-				Debug.Log(control.steer);
 				control.throttle = 1.0f;
 				control.reverse = true;
 			} else {
 				control.throttle = 0.0f;
 				control.brake = 1.0f;
 			}
-
 		} else {
-			//Debug.Log("brake and turn");
-			control.throttle = 0f;
-			control.brake = Mathf.Max(0f, localTarget.z);
-			if ( control.brake < 0 ) {
-				Debug.Log("max brake!!!!!!!!");
-				//control.brake = 1.0f;
-				//control.eBrake = true;
-			};
-			control.steer = Mathf.Clamp(Mathf.Abs(control.steer), 0, 1 - control.brake) * Mathf.Sign(localTarget.x);
-
-			// Scale by the ratio of sideways slip to avoid spinouts
-			control.brake *= Mathf.Clamp01(1 - car.slipVeloSideways / maxSidewaysSlip);
-			//control.steer *= Mathf.Clamp01(1 - car.slipVeloSideways / maxSidewaysSlip);
-
+			// steep turns will try to match direction with the goal not position
+			Vector2 velo2D = new Vector2(car.rigidbody.velocity.x, car.rigidbody.velocity.z);
+			float approachVelo = Vector2.Dot(velo2D, targetDir);
+			float distToNextCorner = (goal.cornerPosition - carPos2D).magnitude;
+			float turnScale = approachVelo / distToNextCorner;
+			Vector3 localTarget = car.transform.InverseTransformDirection(new Vector3(goal.direction.x, 0f, goal.direction.y));
+			control.steer = Mathf.Clamp(goalAngle * Mathf.Sign(localTarget.x) / (car.steerMax * Mathf.Deg2Rad) * turnScale, -1f, 1f);
+			control.throttle = 1f;
 		}
-		if ( Mathf.Abs(car.slipVeloSideways) > 20) {
-			if ( debugUseBreak ) Debug.Break();
-		}
-
-		//Debug.Log("brake:" + control.brake + "  steer:" + control.steer + "  ebrake:" + control.eBrake + "  slipF:" + car.slipVeloForward + "  slipS:" + car.slipVeloSideways);
-		
+	
 		control.gear = car.currentGear;
 		if (car.engineRPM > car.autoShiftUp) {
 			if (car.currentGear < car.gearRatios.Length - 1) {
@@ -130,8 +115,6 @@ public class EnemyAI : MonoBehaviour {
 			}
 		}
 
-		//Debug.Log("steer:" + control.steer + "  throttle:" + control.throttle + "  brake:" + control.brake);
-
 		if (!debugUseAI) return;
 		car.SetControls(control);
 	}
@@ -142,12 +125,23 @@ public class EnemyAI : MonoBehaviour {
 }
 
 namespace AI {
-	public struct Target {
+	public struct Goal {
 		public bool hasPosition;
 		public Vector2 position;
+
 		public bool hasDirection;
 		public Vector2 direction;
-		public bool hasVelocity;
-		public float velocity;
+
+		//public bool hasVelocity;
+		//public float velocity;
+
+		/*  Corner warning will give you the position and angle of upcoming corners.
+		 *  The corner angle is a 0-1 float that scales between 0 deg and 90 deg.
+		 *  cornerAngle is used to scale the target speed to the max speed you can 
+		 *  safely make a corner.
+		 */
+		public bool hasCornerWarning;
+		public Vector2 cornerPosition;
+		public float cornerAngle;
 	}
 }

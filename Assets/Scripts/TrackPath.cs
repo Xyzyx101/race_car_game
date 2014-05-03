@@ -39,8 +39,8 @@ public class TrackPath : MonoBehaviour {
 	 * This calculates the nearest param on the path to position.  currentParam is used
 	 * so that the search will start at a specific spot on the path and continue 
 	 * consecutivly rather than search the whole path every time. */
-	public float GetNearestParam(ref AI.Target target, Vector2 position, float currentParam ) {
-		target.hasPosition = true;
+	public float GetNearestParam(ref AI.Goal goal, Vector2 position, float currentParam ) {
+		goal.hasPosition = true;
 		float segmentTotal = 0f;
 		int targetSegment = 0;
 		currentParam %= totalLength; // this just any overflow after each lap
@@ -57,7 +57,7 @@ public class TrackPath : MonoBehaviour {
 		}
 		float shortestDistance2 = Mathf.Infinity; //shortest distance squared
 
-		target.position = segments2D[targetSegment];
+		goal.position = segments2D[targetSegment];
 
 		float newDistance2; // new distanceSquared
 		int searchSegment = targetSegment;
@@ -70,7 +70,7 @@ public class TrackPath : MonoBehaviour {
 			if ( nextSegment == 0 ) fullLap = true;
 			targetSegment = searchSegment;
 			shortestDistance2 = newDistance2;
-			target.position = nearestPoint;
+			goal.position = nearestPoint;
 			searchSegment = nextSegment; //currentSegment == segments2D.Length - 1 ? 0 : currentSegment + 1;// increment unless it is the last segment then go to 0
 		} while ( true );
 		float newParam = 0;
@@ -78,11 +78,18 @@ public class TrackPath : MonoBehaviour {
 			newParam += segmentLengths[i];
 		}
 		float sumOfSegments = newParam;
-		newParam += (target.position - segments2D[targetSegment]).magnitude;
+		newParam += (goal.position - segments2D[targetSegment]).magnitude;
 
-		target.hasDirection = true;
 		int directionSegment = targetSegment == segments2D.Length - 1 ? 0 : targetSegment + 1;
-		target.direction = (segments2D[directionSegment] - segments2D[targetSegment]).normalized;
+		goal.hasDirection = true;
+		goal.direction = (segments2D[directionSegment] - segments2D[targetSegment]).normalized;
+
+		int nextDirectionSegment = directionSegment == segments2D.Length - 1 ? 0 : directionSegment + 1;
+		Vector2 nextDirection = (segments2D[nextDirectionSegment] - segments2D[directionSegment]).normalized;
+
+		goal.hasCornerWarning = true;
+		goal.cornerPosition = segments2D[directionSegment];
+		goal.cornerAngle = 1 - Vector2.Angle(goal.direction, nextDirection) / 90f;
 
 		if ( newParam >= currentParam ) {
 			// moving forward normally. use position calculated above
@@ -93,7 +100,7 @@ public class TrackPath : MonoBehaviour {
 		} else {
 			// moving backwards in not allowed.  Recalculate position based on param passed in.
 			float partialSegment = currentParam - sumOfSegments;
-			target.position = segments2D[targetSegment] + target.direction * partialSegment;
+			goal.position = segments2D[targetSegment] + goal.direction * partialSegment;
 			return currentParam;
 		}
 	}
